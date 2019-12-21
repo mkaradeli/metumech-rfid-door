@@ -2,24 +2,58 @@
 
 import RPi.GPIO as GPIO
 import time
-#import logging
+import logging
 from time import sleep
 import sys
 from mfrc522 import SimpleMFRC522
 reader = SimpleMFRC522()
 
-waitTimeForAddingNewCards = 5
-logfile = "/home/pi/kapi_records.log"
+#waitTimeForAddingNewCards = 5
+#logfile = "/home/pi/kapi_records.log"
 cards = "/home/pi/cards.txt"
-admin_cards = "/home/pi/admin_cards.txt"
-isCardAddMode = 0
-cardAddButton = 18
-isAdminAddMode = 0
-adminAddButton = 16
+#admin_cards = "/home/pi/admin_cards.txt"
+successfull_reads = "/home/pi/success.txt"
+unsuccessfull_reads = "/home/pi/unsuccessfull.txt"
+#isCardAddMode = 0
+#cardAddButton = 18
+#isAdminAddMode = 0
+#adminAddButton = 16
 role = 37
 isAddingCardInd = 38
 timeToKeepRoleOpen = 1
 new_key = 0
+
+
+
+
+def setup_logger(logger_name, log_file, level=logging.INFO):
+    l = logging.getLogger(logger_name)
+    formatter = logging.Formatter('%(asctime)s : %(message)s')
+    fileHandler = logging.FileHandler(log_file, mode='a+')
+    fileHandler.setFormatter(formatter)
+    streamHandler = logging.StreamHandler()
+    streamHandler.setFormatter(formatter)
+
+    l.setLevel(level)
+    l.addHandler(fileHandler)
+    l.addHandler(streamHandler)    
+
+
+setup_logger('log1', successfull_reads)
+setup_logger('log2', unsuccessfull_reads)
+logger_success = logging.getLogger('log1')
+logger_fail = logging.getLogger('log2')
+
+
+
+
+logger_success.info('Restarted Server.')
+logger_fail.info('Restarted Server.')
+
+
+
+
+
 
 #logging.basicConfig(filename=logfile, filemode='a+', level=logging.info, format='%(levelname)s:%(asctime)s:%(message)s')
 #logging.info("Started Program.")
@@ -45,17 +79,20 @@ def authenticate(new_key):
 	f1 = f.readlines()
 	for x in f1:
 		if str(new_key) == x[0:12]:
+			logger_success.info(str(new_key))
 			return True
- 
+			
+	logger_fail.info(str(new_key))
 	return False
+	
 
-def authenticate_admin(new_key):
-	f = open(admin_cards, "r")
-	f1 = f.readlines()
-	for x in f1:
-		if str(new_key) == x[0:12]:
-			return True
-	return False
+#def authenticate_admin(new_key):
+#	f = open(admin_cards, "r")
+#	f1 = f.readlines()
+#	for x in f1:
+#		if str(new_key) == x[0:12]:
+#			return True
+#	return False
 
 
 #def addcardToFile(new_key):
@@ -95,6 +132,12 @@ def blink():
 	sleep(0.1)
 	return
 
+def unlocking():
+	GPIO.output(role, GPIO.LOW)
+	#GPIO.output(isAddingCardInd, GPIO.HIGH)
+	sleep(timeToKeepRoleOpen)
+	#logging.info("Locking the door")
+	GPIO.output(role, GPIO.HIGH)
 
 #def addcard():
 #	GPIO.output(isAddingCardInd, GPIO.HIGH)
@@ -212,12 +255,8 @@ while True:
 		if (authenticate(new_key)):
 			print("Unlocking" + str(new_key))
 			#logging.info("Unlocking the door")
-			GPIO.output(role, GPIO.LOW)
-			GPIO.output(isAddingCardInd, GPIO.HIGH)
-			sleep(timeToKeepRoleOpen)
-			#logging.info("Locking the door")
-			GPIO.output(role, GPIO.HIGH)
-			GPIO.output(isAddingCardInd, GPIO.LOW)
+			unlocking()
+			#GPIO.output(isAddingCardInd, GPIO.LOW)
 		else:
 			print("read card isnt auth."+ str(new_key))
 			blink()
