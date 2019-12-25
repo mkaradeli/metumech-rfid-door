@@ -13,7 +13,6 @@ successfull_reads = "/home/pi/successfull_reads.txt"
 unsuccessfull_reads = "/home/pi/unsuccessfull_reads.txt"
 
 role = 37
-#isAddingCardInd = 38
 timeToKeepRoleOpen = 1
 new_key = 0
 
@@ -55,9 +54,6 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(role, GPIO.OUT)
 GPIO.output(role, GPIO.HIGH)
 
-#GPIO.setup(isAddingCardInd, GPIO.OUT)
-#GPIO.output(isAddingCardInd, GPIO.LOW)
-
 
 
 def authenticate(new_key):
@@ -76,28 +72,9 @@ def authenticate(new_key):
 	
 
 
-#def blink():
-#	GPIO.output(isAddingCardInd, GPIO.LOW)
-#	sleep(0.1)
-#	GPIO.output(isAddingCardInd, GPIO.HIGH)
-#	sleep(0.3)
-#	GPIO.output(isAddingCardInd, GPIO.LOW)
-#	sleep(0.1)
-#	GPIO.output(isAddingCardInd, GPIO.HIGH)
-#	sleep(0.3)
-#	GPIO.output(isAddingCardInd, GPIO.LOW)
-#	sleep(0.1)
-#	GPIO.output(isAddingCardInd, GPIO.HIGH)
-#	sleep(0.3)
-#	GPIO.output(isAddingCardInd, GPIO.LOW)
-#	sleep(0.1)
-#	return
-
 def unlock():
 	GPIO.output(role, GPIO.LOW)
-	#GPIO.output(isAddingCardInd, GPIO.HIGH)
 	sleep(timeToKeepRoleOpen)
-	#logging.info("Locking the door")
 	GPIO.output(role, GPIO.HIGH)
 
 
@@ -114,13 +91,11 @@ while True:
 		new_key = 0
 	else:
 		isReadyToReadCard = False
-		#logging.info("Read Card:%s", new_key)
 		if (authenticate(new_key)):
 			print("Unlocking" + str(new_key))
 			unlock()
 		else:
 			print("read card isnt auth."+ str(new_key))
-			#blink()
 
 	
 
